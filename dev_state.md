@@ -3,10 +3,27 @@
 ## Project
 - Name: Glass-Native Object Store Simulator
 - Repository: Optical-Glass-Storage-System
-- Last Updated: 2026-04-19
+- Last Updated: 2026-04-22
 
 ## Current Phase
 - Phase 1: Project initialization and skeleton setup (Completed)
+
+## Latest Progress (2026-04-22)
+1. Refactored write packer architecture from inheritance-based classes to a single `WritePacker` class.
+2. Decoupled packing logic into pluggable algorithm modules:
+   - `BaselineFIFOAlgorithm`
+   - `ProposedSABFDAlgorithm`
+3. Updated `WritePacker` to accept `packing_algorithm` as a constructor parameter.
+4. Added delegation flow in `WritePacker`:
+   - `process_incoming_request(...)` delegates to current algorithm
+   - `force_flush()` delegates to current algorithm
+   - `manage_region_dependency(...)` delegates when supported by algorithm
+5. Updated `main.py` wiring to instantiate one `WritePacker` and inject algorithm by mode.
+6. Verified simulator bootstrap after refactor:
+   - `.venv/bin/python main.py` (success)
+   - `.venv/bin/python main.py --mode proposed` (success)
+7. Added `PackingAlgorithm` abstract contract for write-packer algorithms.
+8. Updated `WritePacker` to use `BaselineFIFOAlgorithm` as default when no algorithm is provided.
 
 ## Latest Progress (2026-04-19)
 1. Read and aligned implementation with `glass_storage_system_simulator_spec.md`.
@@ -38,7 +55,7 @@
 
 ## Next Goals
 1. Implement minimum runnable Baseline pipeline:
-   - `BaselineFIFOWritePacker` request buffering + flush trigger
+   - `WritePacker + BaselineFIFOAlgorithm` request buffering + flush trigger
    - `BaselineSMTFReadScheduler` queueing + target selection skeleton with deterministic behavior
 2. Implement basic L2P flow:
    - Register mapping on write

@@ -13,8 +13,8 @@ from hardware.read_drive import ReadDrive
 from hardware.write_drive import WriteDrive
 from strategies.read_scheduler.baseline_smtf import BaselineSMTFReadScheduler
 from strategies.read_scheduler.proposed_occs import ProposedOCCSReadScheduler
-from strategies.write_packer.baseline_fifo import BaselineFIFOWritePacker
-from strategies.write_packer.proposed_sa_bfd import ProposedSABFDWritePacker
+from strategies.write_packer.algorithms.proposed_sa_bfd import ProposedSABFDAlgorithm
+from strategies.write_packer.write_packer import WritePacker
 from utils.metrics import MetricsCollector
 from workload.generator import WorkloadGenerator
 
@@ -54,11 +54,19 @@ def build_simulation(mode: str) -> dict[str, object]:
     write_drive = WriteDrive(env)
 
     if mode == "baseline":
-        write_packer = BaselineFIFOWritePacker(env, staging_buffer, l2p_table, glass_media)
+        packing_algorithm = None
         read_scheduler = BaselineSMTFReadScheduler(env, read_drive, l2p_table)
     else:
-        write_packer = ProposedSABFDWritePacker(env, staging_buffer, l2p_table, glass_media)
+        packing_algorithm = ProposedSABFDAlgorithm()
         read_scheduler = ProposedOCCSReadScheduler(env, read_drive, l2p_table)
+
+    write_packer = WritePacker(
+        env,
+        staging_buffer,
+        l2p_table,
+        glass_media,
+        packing_algorithm=packing_algorithm,
+    )
 
     metrics = MetricsCollector()
     workload_generator = WorkloadGenerator()
